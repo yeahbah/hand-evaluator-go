@@ -77,6 +77,26 @@ func TestParseHandWithBoard(t *testing.T) {
 	}
 }
 
+
+func TestCardRank(t *testing.T) {
+	card := ParseCard("Qs")
+	want := RankQueen
+	got, _ := CardRank(card)
+	
+	if want != got {
+		t.Fatalf("Incorrect card value. Want %d, got %d", want, got)
+	}
+}
+
+func TestCardSuit(t *testing.T) {
+	card := ParseCard("4d")
+	want := Diamonds
+	got, _ := CardSuit(card)
+	if want != got {
+		t.Fatalf("Incorrect suit. Want %d, got %d", want, got)
+	}
+}
+
 func TestParseCard(t *testing.T) {
 	card := "6c"
 	want := Rank6 + (Clubs * 13)

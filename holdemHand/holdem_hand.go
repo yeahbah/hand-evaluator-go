@@ -56,6 +56,24 @@ func ParseCard(card string) int {
 	return nextCard(card, &cards) 
 }
 
+// given a card value, return the card rank
+func CardRank(card int) (int, error) {
+	if card < 0 && card > 52 {
+		return -1, errors.New("Invalid card. There are only 52 cards in a deck.")
+	}
+
+	return card % 13, nil
+}
+
+// given a card value, return the card suit
+func CardSuit(card int) (int, error) {
+	if card < 0 || card > 52 {
+		return -1, errors.New("Invalid card")
+	}
+
+	return card / 13, nil
+}
+
 func parseHand(hand string, cards *int) (uint64, error) {	
 	if strings.Trim(hand, " ") == "" {
 		*cards = 0
