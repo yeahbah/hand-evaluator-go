@@ -2,7 +2,8 @@ package holdemHand
 
 import (
 	"errors"
-	_"fmt"
+	_ "fmt"
+	"strings"
 )
 
 // This function takes a string representing a full or partial holdem mask
@@ -35,6 +36,45 @@ func ValidateHand(hand string) bool {
 // Ok: As 2s, board: Ac 2d 9s
 func ValidateHandWithBoard(pocket string, board string) bool {
 	return ValidateHand(pocket + board)
+}
+
+// Parse the hand string to get a uint64 representation
+func ParseHand(hand string) (uint64, error) {
+	cards := 0
+	return parseHand(hand, &cards)
+}
+
+// Provided for convenience. It does the same thing as ParseHand() except it accepts a board parameter.
+func ParseHandWithBoard(pocket string, board string) (uint64, error) {
+	cards := 0
+	return parseHand(pocket + board, &cards)
+}
+
+// Get card value of given card string
+func ParseCard(card string) int {
+	cards := 0
+	return nextCard(card, &cards) 
+}
+
+func parseHand(hand string, cards *int) (uint64, error) {	
+	if strings.Trim(hand, " ") == "" {
+		*cards = 0
+		return 0, nil
+	}
+
+	if !ValidateHand(hand) {
+		return 0, errors.New("Bad hand definition") 
+	}
+
+	*cards = 0
+	index := 0
+	handMask := uint64(0)
+	for card := nextCard(hand, &index); card >= 0; card = nextCard(hand, &index) {
+		handMask |= uint64(1) << card
+		*cards++
+	}
+
+	return handMask, nil
 }
 
 func nextCard(cards string, index *int) int {
