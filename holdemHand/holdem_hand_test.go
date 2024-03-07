@@ -123,7 +123,7 @@ func TestEvaluateType(t *testing.T) {
 	pocket := "Ad Kh"
 	board := "8c 5s 6c Js 10h"
 	mask, _ := ParseHandWithBoard(pocket, board)
-	handType := EvaluateType(mask, 7)
+	handType := EvaluateType(mask)
 	want := HighCard
 	if handType != want {
 		t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
@@ -132,7 +132,7 @@ func TestEvaluateType(t *testing.T) {
 	pocket = "Ad Kh"
 	board = "Ac 5s 6c Js 10h"
 	mask, _ = ParseHandWithBoard(pocket, board)
-	handType = EvaluateType(mask, 7)
+	handType = EvaluateType(mask)
 	want = Pair
 	if handType != want {
 		t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
@@ -141,7 +141,7 @@ func TestEvaluateType(t *testing.T) {
 	pocket = "Ad Kh"
 	board = "Ac Ks 6c Js 10h"
 	mask, _ = ParseHandWithBoard(pocket, board)
-	handType = EvaluateType(mask, 7)
+	handType = EvaluateType(mask)
 	want = TwoPair
 	if handType != want {
 		t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
@@ -150,7 +150,7 @@ func TestEvaluateType(t *testing.T) {
 	pocket = "Ad Ah"
 	board = "Ac Ks 6c Js 10h"
 	mask, _ = ParseHandWithBoard(pocket, board)
-	handType = EvaluateType(mask, 7)
+	handType = EvaluateType(mask)
 	want = Trips
 	if handType != want {
 		t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
@@ -159,7 +159,7 @@ func TestEvaluateType(t *testing.T) {
 	pocket = "2d 3d"
 	board = "4c 5s 6c Ad Ah"
 	mask, _ = ParseHandWithBoard(pocket, board)
-	handType = EvaluateType(mask, 7)
+	handType = EvaluateType(mask)
 	want = Straight
 	if handType != want {
 		t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
@@ -168,7 +168,7 @@ func TestEvaluateType(t *testing.T) {
 	pocket = "Ad Kh"
 	board = "2d Kd 6d Jd Th"
 	mask, _ = ParseHandWithBoard(pocket, board)
-	handType = EvaluateType(mask, 7)
+	handType = EvaluateType(mask)
 	want = Flush
 	if handType != want {
 		t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
@@ -177,7 +177,7 @@ func TestEvaluateType(t *testing.T) {
 	pocket = "Ad Ah"
 	board = "As Kd 6d 6c Th"
 	mask, _ = ParseHandWithBoard(pocket, board)
-	handType = EvaluateType(mask, 7)
+	handType = EvaluateType(mask)
 	want = FullHouse
 	if handType != want {
 		t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
@@ -186,7 +186,7 @@ func TestEvaluateType(t *testing.T) {
 	pocket = "8d 9d"
 	board = "As Kd Jd 7d Td"
 	mask, _ = ParseHandWithBoard(pocket, board)
-	handType = EvaluateType(mask, 7)
+	handType = EvaluateType(mask)
 	want = StraightFlush
 	if handType != want {
 		t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
@@ -195,7 +195,7 @@ func TestEvaluateType(t *testing.T) {
 	pocket = "Kh Ah"
 	board = "Jh Qh 8d 6c Th"
 	mask, _ = ParseHandWithBoard(pocket, board)
-	handType = EvaluateType(mask, 7)
+	handType = EvaluateType(mask)
 	want = StraightFlush
 	if handType != want {
 		t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)

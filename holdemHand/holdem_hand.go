@@ -170,7 +170,8 @@ func MaskToString(mask uint64) string {
 }
 
 // This function is faster than Evaluate but provides less information
-func EvaluateType(mask uint64, cards uint) int {
+func EvaluateType(mask uint64) int {
+	numCards := bitCount(mask)
 	result := HighCard
 
 	x := uint64(0x1FFF)
@@ -181,7 +182,7 @@ func EvaluateType(mask uint64, cards uint) int {
 
 	ranks := sc | sd | sh | ss
 	rankInfo := uint(BitsAndStrTable[ranks])
-	numDups := uint(cards - (rankInfo >> 2))
+	numDups := uint(numCards - (rankInfo >> 2))
 
 	if (rankInfo & 0x01) != 0 {
 		if (rankInfo & 0x02) != 0 {
@@ -221,8 +222,28 @@ func EvaluateType(mask uint64, cards uint) int {
 		} else {
 			return TwoPair
 		}
-	}
-	//return result
+	}	
+}
+
+func EvaluateMask(mask uint64) {
+
+}
+
+// Evaluates a mask passed as a string and returns a hand value.
+// A hand value can be compare against another hand value to
+// determine which has the higher value.
+func EvaluateHandText(hand string) {
+
+}
+
+func bitCount(mask uint64) uint {
+	x := uint64(0x1FFF)
+	ss := uint((mask >> SPADE_OFFSET) & x)
+	sc := uint((mask >> CLUB_OFFSET) & x)
+	sd := uint((mask >> DIAMOND_OFFSET) & x)
+	sh := uint((mask >> HEART_OFFSET) & x)
+ 	result := BitsTable[sc] + BitsTable[ss] + BitsTable[sd] + BitsTable[sh]
+	return uint(result)
 }
 
 func cardsRange(mask uint64) <- chan string {
