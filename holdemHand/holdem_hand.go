@@ -102,9 +102,10 @@ func HandDescriptionFromHandType(handValue uint) string {
 		sb.WriteString(RankTable[secondCard])
 
 		kicker := getThirdCard(handValue)
-		sb.WriteString("'s with a")
+		sb.WriteString("'s with a ")
 		sb.WriteString(RankTable[kicker])
 		sb.WriteString(" for a kicker")
+		return sb.String()
 	case Trips:
 		topCard := getTopCard(handValue)
 		sb.WriteString("Three of a kind, ")
@@ -128,6 +129,7 @@ func HandDescriptionFromHandType(handValue uint) string {
 
 	case FullHouse:
 		topCard := getTopCard(handValue)
+		sb.WriteString("A fullhouse, ")
 		sb.WriteString(RankTable[topCard])
 		sb.WriteString("'s and ")
 
@@ -138,6 +140,7 @@ func HandDescriptionFromHandType(handValue uint) string {
 
 	case FourOfAKind:
 		topCard := getTopCard(handValue)
+		sb.WriteString("Four of a kind, ")
 		sb.WriteString(RankTable[topCard])
 		sb.WriteString("'s")
 		return sb.String()
@@ -318,8 +321,8 @@ func EvaluateMask(mask uint64) (uint, error) {
 		// either two pair or trips
 		twoMask := ranks ^ (sc ^ sd ^ sh ^ ss)
 		if twoMask != 0 {
-			t := ranks & twoMask // exactly two bits set in twoMask
-			result := HANDTYPE_VALUE_TWOPAIR + (TopFiveCardsTable[twoMask] & (TOP_CARD_MASK | SECOND_CARD_MASK)) + (TopFiveCardsTable[t] << THIRD_CARD_SHIFT)
+			t := ranks ^ twoMask // exactly two bits set in twoMask
+			result := HANDTYPE_VALUE_TWOPAIR + (TopFiveCardsTable[twoMask] & (TOP_CARD_MASK | SECOND_CARD_MASK)) + (TopCardTable[t] << THIRD_CARD_SHIFT)
 			return result, nil
 		}
 
@@ -353,7 +356,7 @@ func EvaluateMask(mask uint64) (uint, error) {
 			threeMask := ((sc ^ sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
 			result := HANDTYPE_VALUE_FULLHOUSE
 			tc := TopCardTable[threeMask]
-			result = tc << TOP_CARD_SHIFT
+			result += tc << TOP_CARD_SHIFT
 			t := (twoMask | threeMask) ^ (uint(1) << tc)
 			result += TopCardTable[t] << SECOND_CARD_SHIFT
 			return result, nil

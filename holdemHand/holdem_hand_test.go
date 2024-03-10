@@ -206,82 +206,90 @@ func TestEvaluateMask(t *testing.T) {
 	pocket := "Ad Kh"
 	board := "8c 5s 6c Js 10h"
 	handValue, _ := EvaluateHandText(pocket + board)
-
-	want := "High Card"
+	want := "High card"
 	got := HandDescriptionFromHandType(handValue)
-	if strings.Contains(want, got) && strings.Contains(want, "Ace") {
-		t.Fatalf("EvaluateType() failed. Want %s but got %s", want, got)
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
 	}
 
-	// pocket = "Ad Kh"
-	// board = "Ac 5s 6c Js 10h"
-	// mask, _ = ParseHandWithBoard(pocket, board)
-	// handType = EvaluateType(mask)
-	// want = Pair
-	// if handType != want {
-	// 	t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
-	// }
+	pocket = "Ad Kh"
+	board = "Ac 5s 6c Js 10h"
+	handValue, _ = EvaluateHandText(pocket + board)
+	want = "One pair"
+	got = HandDescriptionFromHandType(handValue)
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
+	}
 
-	// pocket = "Ad Kh"
-	// board = "Ac Ks 6c Js 10h"
-	// mask, _ = ParseHandWithBoard(pocket, board)
-	// handType = EvaluateType(mask)
-	// want = TwoPair
-	// if handType != want {
-	// 	t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
-	// }
+	pocket = "Ad Kh"
+	board = "Ac Ks 6c Js 10h"
+	handValue, _ = EvaluateHandText(pocket + board)
+	want = "Two pair"
+	got = HandDescriptionFromHandType(handValue)
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
+	}
 
-	// pocket = "Ad Ah"
-	// board = "Ac Ks 6c Js 10h"
-	// mask, _ = ParseHandWithBoard(pocket, board)
-	// handType = EvaluateType(mask)
-	// want = Trips
-	// if handType != want {
-	// 	t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
-	// }
+	pocket = "Ad Ah"
+	board = "Ac Ks 6c Js 10h"
+	handValue, _ = EvaluateHandText(pocket + board)
+	got = HandDescriptionFromHandType(handValue)
+	want = "Three of a kind"
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
+	}
 
-	// pocket = "2d 3d"
-	// board = "4c 5s 6c Ad Ah"
-	// mask, _ = ParseHandWithBoard(pocket, board)
-	// handType = EvaluateType(mask)
-	// want = Straight
-	// if handType != want {
-	// 	t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
-	// }
+	pocket = "2d 3d"
+	board = "4c 5s 6c Ad Ah"
+	handValue, _ = EvaluateHandText(pocket + board)
+	got = HandDescriptionFromHandType(handValue)
+	want = "A straight"
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
+	}
 
-	// pocket = "Ad Kh"
-	// board = "2d Kd 6d Jd Th"
-	// mask, _ = ParseHandWithBoard(pocket, board)
-	// handType = EvaluateType(mask)
-	// want = Flush
-	// if handType != want {
-	// 	t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
-	// }
+	pocket = "Ad Kh"
+	board = "2d Kd 6d Jd Th"
+	handValue, _ = EvaluateHandText(pocket + board)
+	got = HandDescriptionFromHandType(handValue)
+	want = "A flush"
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
+	}
 
-	// pocket = "Ad Ah"
-	// board = "As Kd 6d 6c Th"
-	// mask, _ = ParseHandWithBoard(pocket, board)
-	// handType = EvaluateType(mask)
-	// want = FullHouse
-	// if handType != want {
-	// 	t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
-	// }
+	pocket = "Ad Ah"
+	board = "As Kd 6d 6c Th"
+	handValue, _ = EvaluateHandText(pocket + board)
+	got = HandDescriptionFromHandType(handValue)
+	want = "A fullhouse"
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
+	}
 
-	// pocket = "8d 9d"
-	// board = "As Kd Jd 7d Td"
-	// mask, _ = ParseHandWithBoard(pocket, board)
-	// handType = EvaluateType(mask)
-	// want = StraightFlush
-	// if handType != want {
-	// 	t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
-	// }
+	pocket = "Ad Ah"
+	board = "As Kd Ac 6c Th"
+	handValue, _ = EvaluateHandText(pocket + board)
+	got = HandDescriptionFromHandType(handValue)
+	want = "Four of a kind"
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
+	}
 
-	// pocket = "Kh Ah"
-	// board = "Jh Qh 8d 6c Th"
-	// mask, _ = ParseHandWithBoard(pocket, board)
-	// handType = EvaluateType(mask)
-	// want = StraightFlush
-	// if handType != want {
-	// 	t.Fatalf("EvaluateType() failed. Want %d but got %d", want, handType)
-	// }
+	pocket = "8d 9d"
+	board = "As Kd Jd 7d Td"
+	handValue, _ = EvaluateHandText(pocket + board)
+	got = HandDescriptionFromHandType(handValue)
+	want = "A straight flush"
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
+	}
+
+	pocket = "Kh Ah"
+	board = "Jh Qh 8d 6c Th"
+	handValue, _ = EvaluateHandText(pocket + board)
+	got = HandDescriptionFromHandType(handValue)
+	want = "A straight flush"
+	if !strings.Contains(got, want) {
+		t.Fatalf("EvaluateHandText() failed. Want %s but got %s", want, got)
+	}
 }
