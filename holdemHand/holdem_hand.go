@@ -74,6 +74,7 @@ func CardSuit(card int) (int, error) {
 	return card / 13, nil
 }
 
+// Converts a handvalue into descriptive text
 func HandDescriptionFromHandType(handValue uint) string {
 	sb := strings.Builder{}
 	handType := getHandType(handValue)
@@ -84,13 +85,13 @@ func HandDescriptionFromHandType(handValue uint) string {
 		sb.WriteString("High card: ")
 		sb.WriteString(RankTable[topCard])
 		return sb.String()
-	
-	case Pair: 
+
+	case Pair:
 		topCard := getTopCard(handValue)
 		sb.WriteString("One pair, ")
 		sb.WriteString(RankTable[topCard])
 		return sb.String()
-	
+
 	case TwoPair:
 		topCard := getTopCard(handValue)
 		sb.WriteString("Two pair, ")
@@ -99,7 +100,7 @@ func HandDescriptionFromHandType(handValue uint) string {
 		secondCard := getSecondCard(handValue)
 		sb.WriteString("'s and ")
 		sb.WriteString(RankTable[secondCard])
-		
+
 		kicker := getThirdCard(handValue)
 		sb.WriteString("'s with a")
 		sb.WriteString(RankTable[kicker])
@@ -129,7 +130,7 @@ func HandDescriptionFromHandType(handValue uint) string {
 		topCard := getTopCard(handValue)
 		sb.WriteString(RankTable[topCard])
 		sb.WriteString("'s and ")
-		
+
 		secondCard := getSecondCard(handValue)
 		sb.WriteString(RankTable[secondCard])
 		sb.WriteString("'s")
@@ -154,14 +155,15 @@ func HandDescriptionFromHandType(handValue uint) string {
 
 // }
 
+// Converts a hand mask to a hand text
 func MaskToString(mask uint64) string {
-	sb := strings.Builder{}	
+	sb := strings.Builder{}
 
 	count := 0
 	for card := range cardsRange(mask) {
-		if (count > 0) {
+		if count > 0 {
 			sb.WriteString(" ")
-		}		
+		}
 		sb.WriteString(card)
 		count++
 	}
@@ -189,8 +191,8 @@ func EvaluateType(mask uint64) int {
 			result = Straight
 		}
 		t := uint(BitsAndStrTable[ss] | BitsAndStrTable[sc] | BitsAndStrTable[sd] | BitsAndStrTable[sh])
-		if t & 0x01 != 0 {
-			if t & 0x02 != 0 {
+		if t&0x01 != 0 {
+			if t&0x02 != 0 {
 				return StraightFlush
 			} else {
 				result = Flush
@@ -222,18 +224,162 @@ func EvaluateType(mask uint64) int {
 		} else {
 			return TwoPair
 		}
-	}	
+	}
 }
 
-func EvaluateMask(mask uint64) {
+// Evaluates a long type hand mask and returns a hand value.
+// A hand value can be compared against another hand value to
+// determine which has the higher value.
+func EvaluateMask(mask uint64) (uint, error) {
+	numCards := bitCount(mask)
+	if numCards < 1 || numCards > 7 {
+		return 0, errors.New("Invalid number of cards")
+	}
+
+	sc := uint((mask >> CLUB_OFFSET) & 0x1FFF)
+	sd := uint((mask >> DIAMOND_OFFSET) & 0x1FFF)
+	sh := uint((mask >> HEART_OFFSET) & 0x1FFF)
+	ss := uint((mask >> SPADE_OFFSET) & 0x1FFF)
+
+	ranks := sc | sd | sh | ss
+	nRanks := BitsTable[ranks]
+	numDups := numCards - uint(nRanks)
+	result := uint(0)
+
+	var straighOrFlushFunc func(uint) uint = func(suit uint) uint {
+		if StraightTable[suit] != 0 {
+			return HANDTYPE_VALUE_STRAIGHTFLUSH + uint(StraightTable[suit]<<uint16(TOP_CARD_SHIFT))
+		}
+		return HANDTYPE_VALUE_FLUSH + TopFiveCardsTable[suit]
+	}
+
+	// check for straight, flush or straight flush and return if we
+	// determine immediately that this is the best possible mask
+	if nRanks >= 5 {
+		if BitsTable[ss] >= 5 {
+			// if StraightTable[ss] != 0 {
+			// 	return HANDTYPE_VALUE_STRAIGHTFLUSH + uint(StraightTable[ss]<<TOP_CARD_SHIFT), nil
+			// } else {
+			// 	result = HANDTYPE_VALUE_FLUSH + uint(TopFiveCardsTable[ss])
+			// }
+			result = straighOrFlushFunc(ss)
+
+		} else if BitsTable[sc] >= 5 {
+			// if StraightTable[sc] != 0 {
+			// 	return HANDTYPE_VALUE_STRAIGHTFLUSH + uint(StraightTable[sc]<<TOP_CARD_SHIFT), nil
+			// } else {
+			// 	result = HANDTYPE_VALUE_FLUSH + uint(TopFiveCardsTable[sc])
+			// }
+			result = straighOrFlushFunc(sc)
+		} else if BitsTable[sd] >= 5 {
+			// if StraightTable[sd] != 0 {
+			// 	return HANDTYPE_VALUE_STRAIGHTFLUSH + uint(StraightTable[sd]<<TOP_CARD_SHIFT), nil
+			// } else {
+			// 	result = HANDTYPE_VALUE_FLUSH + uint(TopFiveCardsTable[sd])
+			// }
+			result = straighOrFlushFunc(sd)
+		} else if BitsTable[sh] >= 5 {
+			result = straighOrFlushFunc(sh)
+		} else {
+			st := uint(StraightTable[ranks])
+			if st != 0 {
+				result = HANDTYPE_VALUE_STRAIGHT + st<<TOP_CARD_SHIFT
+			}
+		}
+
+		// Another win -- if there can't be a FH/Quads (numDups < 3),
+		// which is true most of the time when there is a made mask, the if we've
+		// found a five card mask, just return. This skips the whole process of
+		// computing two mask/three_mask/etc
+		if result != 0 && numDups < 3 {
+			return result, nil
+		}
+	}
+
+	// by the we're here, either:
+	// 1. there's no five-card mask possible (flush or straight), or
+	// 2. there's a flush or straight, but we know that there are enough
+	//	duplicates to make a full house / quads possible
+	switch numDups {
+	case 0:
+		return HANDTYPE_VALUE_HIGHCARD + TopFiveCardsTable[ranks], nil
+	case 1:
+		twoMask := ranks ^ (sc ^ sd ^ sh ^ ss)
+		result = HANDTYPE_VALUE_PAIR + TopCardTable[twoMask]<<TOP_CARD_SHIFT
+		t := ranks ^ twoMask // only one bit set in twoMask
+
+		// get the top five cards in what is left, drop all but the top three
+		// cards, and shift them by one to get the three desired kickers
+		kickers := (TopFiveCardsTable[t] >> CARD_WIDTH) &^ FIFTH_CARD_MASK
+		result += kickers
+		return result, nil
+
+	case 2:
+		// either two pair or trips
+		twoMask := ranks ^ (sc ^ sd ^ sh ^ ss)
+		if twoMask != 0 {
+			t := ranks & twoMask // exactly two bits set in twoMask
+			result := HANDTYPE_VALUE_TWOPAIR + (TopFiveCardsTable[twoMask] & (TOP_CARD_MASK | SECOND_CARD_MASK)) + (TopFiveCardsTable[t] << THIRD_CARD_SHIFT)
+			return result, nil
+		}
+
+		threeMask := ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
+		result := HANDTYPE_VALUE_TRIPS + TopCardTable[threeMask]<<TOP_CARD_SHIFT
+		t := ranks & threeMask // only one bit set in the threeMask
+		second := TopCardTable[t]
+		result += second << SECOND_CARD_SHIFT
+		t ^= uint(1) << second
+		result += TopCardTable[t] << THIRD_CARD_SHIFT
+		return result, nil
+
+	default:
+		// possible quads, full house or flush or two pair
+		fourMask := sh & sd & sc & ss
+		if fourMask != 0 {
+			tc := TopCardTable[fourMask]
+			result := HANDTYPE_VALUE_FOUR_OF_A_KIND + (tc << TOP_CARD_SHIFT) + ((TopCardTable[ranks^uint(1)<<tc]) << SECOND_CARD_SHIFT)
+			return result, nil
+		}
+
+		// technically, threeMask as defined below is really the set of bits
+		// which are set in three or four of the suits, but since
+		// we've already eliminated quads, this is OK.
+		// Similarly, twoMask is really twoOrFourMask, but since we're
+		// already eliminated quads, we can use this shortcut
+		twoMask := ranks ^ (sc ^ sd ^ sh ^ ss)
+		if BitsTable[twoMask] != numDups {
+			// must be some trips then, which really means there is a
+			// full house since numDups >= 3
+			threeMask := ((sc ^ sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
+			result := HANDTYPE_VALUE_FULLHOUSE
+			tc := TopCardTable[threeMask]
+			result = tc << TOP_CARD_SHIFT
+			t := (twoMask | threeMask) ^ (uint(1) << tc)
+			result += TopCardTable[t] << SECOND_CARD_SHIFT
+			return result, nil
+		}
+
+		// must be two pair
+		result := HANDTYPE_VALUE_TWOPAIR
+		top := TopCardTable[twoMask]
+		result += top << TOP_CARD_SHIFT
+		second := TopCardTable[twoMask^uint(1)<<top]
+		result += second << SECOND_CARD_SHIFT
+		result += TopCardTable[ranks^(uint(1)<<top)^(uint(1)<<second)] << THIRD_CARD_SHIFT
+		return result, nil
+	}
 
 }
 
 // Evaluates a mask passed as a string and returns a hand value.
 // A hand value can be compare against another hand value to
 // determine which has the higher value.
-func EvaluateHandText(hand string) {
-
+func EvaluateHandText(hand string) (uint, error) {
+	mask, e := ParseHand(hand)
+	if e != nil {
+		return 0, errors.New(e.Error())
+	}
+	return EvaluateMask(mask)
 }
 
 func bitCount(mask uint64) uint {
@@ -242,22 +388,22 @@ func bitCount(mask uint64) uint {
 	sc := uint((mask >> CLUB_OFFSET) & x)
 	sd := uint((mask >> DIAMOND_OFFSET) & x)
 	sh := uint((mask >> HEART_OFFSET) & x)
- 	result := BitsTable[sc] + BitsTable[ss] + BitsTable[sd] + BitsTable[sh]
+	result := BitsTable[sc] + BitsTable[ss] + BitsTable[sd] + BitsTable[sh]
 	return uint(result)
 }
 
-func cardsRange(mask uint64) <- chan string {
+func cardsRange(mask uint64) <-chan string {
 	channel := make(chan string)
 	go func() {
 		for i := 51; i >= 0; i-- {
-			if (uint64(1) << i) & mask != 0 {				
+			if (uint64(1)<<i)&mask != 0 {
 				channel <- CardTable[i]
 			}
 		}
 		close(channel)
 	}()
 
-	return channel	
+	return channel
 }
 
 func getHandType(handValue uint) uint {
