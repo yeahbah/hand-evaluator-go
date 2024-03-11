@@ -1,7 +1,7 @@
-module applications
+module yeahbah.com/applications
 
 go 1.22.0
 
-replace yeahbah.com/holdemHand => ../src
+replace yeahbah.com/holdemHand => ../holdemHand
 
-require yeahbah.com/holdemHand v0.0.0-00010101000000-000000000000
+require github.com/bradhe/stopwatch v0.0.0-20190618212248-a58cccc508ea

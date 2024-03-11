@@ -115,10 +115,6 @@ func TestMaskToString(t *testing.T) {
 	}
 }
 
-func TestEvaluateTypeHighCard(t *testing.T) {
-
-}
-
 func TestEvaluateType(t *testing.T) {
 	pocket := "Ad Kh"
 	board := "8c 5s 6c Js 10h"

@@ -163,13 +163,21 @@ func MaskToString(mask uint64) string {
 	sb := strings.Builder{}
 
 	count := 0
-	for card := range cardsRange(mask) {
+
+	// for card := range cardsRange(mask) {
+	// 	if count > 0 {
+	// 		sb.WriteString(" ")
+	// 	}
+	// 	sb.WriteString(card)
+	// 	count++
+	// }
+	cardsRange2(mask, func(card string) {
 		if count > 0 {
 			sb.WriteString(" ")
 		}
 		sb.WriteString(card)
 		count++
-	}
+	})
 
 	return sb.String()
 }
@@ -393,20 +401,6 @@ func bitCount(mask uint64) uint {
 	sh := uint((mask >> HEART_OFFSET) & x)
 	result := BitsTable[sc] + BitsTable[ss] + BitsTable[sd] + BitsTable[sh]
 	return uint(result)
-}
-
-func cardsRange(mask uint64) <-chan string {
-	channel := make(chan string)
-	go func() {
-		for i := 51; i >= 0; i-- {
-			if (uint64(1)<<i)&mask != 0 {
-				channel <- CardTable[i]
-			}
-		}
-		close(channel)
-	}()
-
-	return channel
 }
 
 func getHandType(handValue uint) uint {
